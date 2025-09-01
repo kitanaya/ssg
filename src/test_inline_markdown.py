@@ -1,6 +1,9 @@
 import unittest
+
 from inline_markdown import (
     split_nodes_delimiter,
+    extract_markdown_links,
+    extract_markdown_images,
 )
 
 from textnode import TextNode, TextType
@@ -18,6 +21,7 @@ class TestInlineMarkdown(unittest.TestCase):
             ],
             new_nodes,
         )
+
 
     def test_delim_bold_double(self):
         node = TextNode(
@@ -101,6 +105,24 @@ class TestInlineMarkdown(unittest.TestCase):
                 TextNode("end", TextType.BOLD),
             ],
             new_nodes,
+        )
+
+    def test_extract_markdown_images(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/something.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/something.png")], matches)
+
+    def test_extract_markdown_links(self):
+        matches = extract_markdown_links(
+            "This is a text with a [link](https://some.domain.com) and [another one](https://cant.thinkof.more)"
+        )
+        self.assertListEqual(
+            [
+                ("link", "https://some.domain.com"),
+                ("another one", "https://cant.thinkof.more"),
+            ],
+            matches,
         )
 
 
