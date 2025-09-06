@@ -4,6 +4,8 @@ from inline_markdown import (
     split_nodes_delimiter,
     extract_markdown_links,
     extract_markdown_images,
+    split_nodes_image,
+    split_nodes_link,
 )
 
 from textnode import TextNode, TextType
@@ -125,6 +127,150 @@ class TestInlineMarkdown(unittest.TestCase):
             matches,
         )
 
+    
+    def test_split_image(self):
+        node = TextNode(
+            "This is a text with a single ![image](https://link.to.image)", TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertEqual(
+            [
+                TextNode("This is a text with a single ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://link.to.image"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_link(self):
+        node = TextNode(
+            "This is a text with a [link](https://link.to.localhost)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertEqual(
+            [
+                TextNode("This is a text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.localhost"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "This is text with a [link](https://link.to.localhost) and another [link](https://link.to.raspi)", TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.localhost"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.raspi"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_image(self):
+        node = TextNode(
+            "This is a text with a single ![image](https://link.to.image)", TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertEqual(
+            [
+                TextNode("This is a text with a single ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://link.to.image"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_link(self):
+        node = TextNode(
+            "This is a text with a [link](https://link.to.localhost)",
+            TextType.TEXT,
+            )
+        new_nodes = split_nodes_link([node])
+        self.assertEqual(
+            [
+                TextNode("This is a text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.localhost"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "This is text with a [link](https://link.to.localhost) and another [link](https://link.to.raspi)", TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.localhost"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://link.to.raspi"),
+            ],
+            new_nodes,
+        )
+
+    def test_no_links_or_images(self):
+        node = TextNode("Just plain text", TextType.TEXT)
+        self.assertEqual([node], split_nodes_link([node]))
+        self.assertEqual([node], split_nodes_image([node]))
+
+    def test_trailing_text_after_link(self):
+        node = TextNode("[site](https://a.b) end", TextType.TEXT)
+        self.assertEqual(
+            [
+                TextNode("site", TextType.LINK, "https://a.b"),
+                TextNode(" end", TextType.TEXT),
+            ],
+            split_nodes_link([node]),
+        )
+
+    def test_mixed_link_then_image(self):
+        node = TextNode("[a](u1) and ![b](u2)", TextType.TEXT)
+        nodes_after_link = split_nodes_link([node])
+        nodes_after_image = split_nodes_image(nodes_after_link)
+        self.assertEqual(
+            [
+                TextNode("a", TextType.LINK, "u1"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("b", TextType.IMAGE, "u2"),
+            ],
+            nodes_after_image,
+        )
 
 if __name__ == "__main__":
     unittest.main()
