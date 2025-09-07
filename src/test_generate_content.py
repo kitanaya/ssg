@@ -17,3 +17,34 @@ class TestExtractTitle(unittest.TestCase):
 """
 		)
 		self.assertEqual("This is a h1 title", h1_title)
+
+	def test_eq_long(self):
+		actual = extract_title(
+			"""
+# title
+
+this is a bunch
+
+of text
+
+- and
+- a
+- list
+"""
+		)
+		self.assertEqual(actual, "title")
+
+	def test_none(self):
+		try:
+			extract_title(
+"""
+no title
+"""
+			)
+			self.fail("Should have raised an exception")
+		except Exception as e:
+			pass
+
+
+if __name__ == "__main__":
+	unittest.main()
